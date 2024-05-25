@@ -1,7 +1,9 @@
+mod util;
+
 use clap::{Arg, Command};
 use google_calendar3::{
     api::{Event, EventDateTime},
-    chrono::{naive, Duration, NaiveDate, NaiveDateTime, NaiveTime, Utc},
+    chrono::{Duration, NaiveDateTime, NaiveTime, Utc},
     hyper, hyper_rustls,
     oauth2::{self, ApplicationSecret},
     CalendarHub,
@@ -37,12 +39,14 @@ async fn main() {
         client_email: None,
         client_x509_cert_url: None,
     };
-
+    
+    let secret_path = util::file::get_absolute_path(".gcal/secret.json").unwrap();
+    let _ = util::file::ensure_directory_exists(&secret_path);
     let auth = oauth2::InstalledFlowAuthenticator::builder(
         secret,
         oauth2::InstalledFlowReturnMethod::Interactive,
     )
-    .persist_tokens_to_disk("tokencache.json")
+    .persist_tokens_to_disk(&secret_path.to_str().unwrap())
     .build()
     .await
     .unwrap();

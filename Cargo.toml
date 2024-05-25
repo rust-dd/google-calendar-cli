@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 clap = { version = "4.5.4", features = ["derive"] }
+dirs = "5.0.1"
 google-calendar3 = "5.0.4"
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 

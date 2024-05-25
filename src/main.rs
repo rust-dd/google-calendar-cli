@@ -1,6 +1,10 @@
 use clap::{Arg, Command};
 use google_calendar3::{
-    chrono::{Utc}, hyper, hyper_rustls, oauth2::{self, ApplicationSecret}, CalendarHub
+    api::{Event, EventDateTime},
+    chrono::{naive, Duration, NaiveDate, NaiveDateTime, NaiveTime, Utc},
+    hyper, hyper_rustls,
+    oauth2::{self, ApplicationSecret},
+    CalendarHub,
 };
 
 #[tokio::main]
@@ -68,35 +72,71 @@ async fn main() {
 
     match matches.subcommand() {
         Some(("list", _)) => {
-            let events = hub.events().list("primary").time_min(Utc::now()).doit().await;
+            let events = hub
+                .events()
+                .list("primary")
+                .time_min(Utc::now())
+                .doit()
+                .await;
             match events {
                 Ok((_, events)) => {
                     if let Some(items) = events.items {
                         for event in items {
-                            println!("{:?}, {:?}-{:?}, {:?}", event.summary, event.start, event.end, event.html_link);
+                            println!(
+                                "{:?}, {:?}-{:?}, {:?}",
+                                event.summary, event.start, event.end, event.html_link
+                            );
                         }
                     }
                 }
                 Err(e) => println!("Error retrieving events: {:?}", e),
             }
-        },
+        }
         Some(("add", _)) | _ => {
             let title = matches.get_one::<String>("title");
+            let date = matches.get_one::<String>("date");
             if title.is_none() {
                 return;
             }
-            let result = hub
-                .events()
-                .quick_add("primary", title.unwrap())
-                .doit()
-                .await;
 
-            match result {
-                Ok((_, event)) => println!("Event created: {:?}", event),
-                Err(e) => {
-                    eprintln!("Error creating event: {:?}", e);
+            if date.is_none() {
+                let result = hub
+                    .events()
+                    .quick_add("primary", title.unwrap())
+                    .doit()
+                    .await;
+
+                match result {
+                    Ok((_, event)) => println!("Event created: {:?}", event),
+                    Err(e) => {
+                        eprintln!("Error creating event: {:?}", e);
+                    }
+                }
+            } else {
+                let current_date = Utc::now().naive_utc();
+                let parsed_time = NaiveTime::parse_from_str(date.unwrap(), "%H:%M");
+                let combined = NaiveDateTime::new(current_date.date(), parsed_time.unwrap());
+                let event = Event {
+                    summary: Some(title.unwrap().clone()),
+                    start: Some(EventDateTime {
+                        date_time: Some(combined.and_utc()),
+                        ..Default::default()
+                    }),
+                    end: Some(EventDateTime {
+                        date_time: Some(combined.and_utc() + Duration::hours(1)),
+                        ..Default::default()
+                    }),
+                    ..Default::default()
+                };
+                let result = hub.events().insert(event, "primary").doit().await;
+
+                match result {
+                    Ok((_, event)) => println!("Event created: {:?}", event),
+                    Err(e) => {
+                        eprintln!("Error creating event: {:?}", e);
+                    }
                 }
             }
-        },
+        }
     }
 }

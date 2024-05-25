@@ -33,29 +33,39 @@ cargo build --release
 ## Usage
 
 
-- Help
+### Help
 
 ```
 gcal help
 ```
 
-- Quick Add Event
+### Add event
 
-https://developers.google.com/calendar/api/v3/reference/events/quickAdd
 
+Quick event for today
 
 ```
 gcal "Retro & Demo at 16:00"
 ```
 
+Quick event on a specific date
+
 ```
 gcal "Appointment on June 3rd 10am-10:25am"
 ```
 
-- List events
+Add event with specifying the date.
+
+```
+gcal add "Appointment" "2024-07-12 10:25"
+```
 
 
-- Delete Event
+List events
+
+```
+gcal list
+```
 
 
 

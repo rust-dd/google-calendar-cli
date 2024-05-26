@@ -23,8 +23,14 @@ async fn main() {
                 .required(false),
         )
         .arg(Arg::new("date").help("Sets the event date").required(false))
-        .subcommand(Command::new("add"))
-        .subcommand(Command::new("list").about("list .."))
+        .subcommand(Command::new("add").about("Adds a new event to Google Calendar"))
+        .subcommand(Command::new("list").about("Lists all events in Google Calendar"))
+        .subcommand(
+            Command::new("auth")
+                .about("User authentication")
+                .subcommand(Command::new("login").about("Login to the application"))
+                .subcommand(Command::new("logout").about("Logout from the application")),
+        )
         .get_matches();
 
     let secret: oauth2::ApplicationSecret = ApplicationSecret {
@@ -39,7 +45,7 @@ async fn main() {
         client_email: None,
         client_x509_cert_url: None,
     };
-    
+
     let secret_path = util::file::get_absolute_path(".gcal/secret.json").unwrap();
     let _ = util::file::ensure_directory_exists(&secret_path);
     let auth = oauth2::InstalledFlowAuthenticator::builder(

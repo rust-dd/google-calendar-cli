@@ -2,11 +2,7 @@ mod util;
 
 use clap::{Arg, Command};
 use google_calendar3::{
-    api::{Event, EventDateTime},
-    chrono::{Duration, NaiveDateTime, NaiveTime, Utc},
-    hyper, hyper_rustls,
-    oauth2::{self, ApplicationSecret, ConsoleApplicationSecret},
-    CalendarHub,
+    api::{Event, EventDateTime}, chrono::{Duration, NaiveDateTime, NaiveTime, Utc}
 };
 use util::auth;
 
@@ -28,48 +24,7 @@ async fn main() {
         .subcommand(Command::new("list").about("Lists all events in Google Calendar"))
         .get_matches();
 
-
-    let secret_absolute_path = util::file::get_absolute_path(".gcal/secret.json").unwrap();
-    let secret_path = std::path::Path::new(&secret_absolute_path);
-    let _ = util::file::ensure_directory_exists(secret_path);
-    let secret = auth::read_google_secret(secret_path).await;
-    if secret.is_err() {
-        println!("You need to provide your secret at {:?}", secret_path.to_str());
-        return;
-    }
-
-    let store_path = util::file::get_absolute_path(".gcal/store.json").unwrap();
-    let auth = oauth2::InstalledFlowAuthenticator::builder(
-        secret.unwrap(),
-        oauth2::InstalledFlowReturnMethod::Interactive,
-    )
-    .persist_tokens_to_disk(&store_path.to_str().unwrap())
-    .build()
-    .await
-    .unwrap();
-
-    let scopes = &[
-        "https://www.googleapis.com/auth/calendar",
-        "https://www.googleapis.com/auth/calendar.events",
-        "https://www.googleapis.com/auth/calendar.readonly",
-        "https://www.googleapis.com/auth/calendar.events.readonly",
-    ];
-
-    match auth.token(scopes).await {
-        Ok(_) => println!("User is authenticated."),
-        Err(e) => println!("error: {:?}", e),
-    }
-
-    let hub = CalendarHub::new(
-        hyper::Client::builder().build(
-            hyper_rustls::HttpsConnectorBuilder::new()
-                .with_native_roots()
-                .https_or_http()
-                .enable_http2()
-                .build(),
-        ),
-        auth,
-    );
+    let hub = auth::auth().await.expect("Failed to authenticate and create CalendarHub");
 
     match matches.subcommand() {
         Some(("list", _)) => {

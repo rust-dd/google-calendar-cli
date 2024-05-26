@@ -5,9 +5,10 @@ use google_calendar3::{
     api::{Event, EventDateTime},
     chrono::{Duration, NaiveDateTime, NaiveTime, Utc},
     hyper, hyper_rustls,
-    oauth2::{self, ApplicationSecret},
+    oauth2::{self, ApplicationSecret, ConsoleApplicationSecret},
     CalendarHub,
 };
+use util::auth;
 
 #[tokio::main]
 
@@ -25,34 +26,24 @@ async fn main() {
         .arg(Arg::new("date").help("Sets the event date").required(false))
         .subcommand(Command::new("add").about("Adds a new event to Google Calendar"))
         .subcommand(Command::new("list").about("Lists all events in Google Calendar"))
-        .subcommand(
-            Command::new("auth")
-                .about("User authentication")
-                .subcommand(Command::new("login").about("Login to the application"))
-                .subcommand(Command::new("logout").about("Logout from the application")),
-        )
         .get_matches();
 
-    let secret: oauth2::ApplicationSecret = ApplicationSecret {
-        auth_uri: "https://accounts.google.com/o/oauth2/auth".to_string(),
-        client_secret: "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".to_string(),
-        token_uri: "https://accounts.google.com/o/oauth2/token".to_string(),
-        redirect_uris: vec!["urn:ietf:wg:oauth:2.0:oob".to_string()],
-        client_id: "602236549045-3gcv7m50sp1d6vvqklimb5oaasp9ihi9.apps.googleusercontent.com"
-            .to_string(),
-        auth_provider_x509_cert_url: Some("https://www.googleapis.com/oauth2/v1/certs".to_string()),
-        project_id: None,
-        client_email: None,
-        client_x509_cert_url: None,
-    };
 
-    let secret_path = util::file::get_absolute_path(".gcal/secret.json").unwrap();
-    let _ = util::file::ensure_directory_exists(&secret_path);
+    let secret_absolute_path = util::file::get_absolute_path(".gcal/secret.json").unwrap();
+    let secret_path = std::path::Path::new(&secret_absolute_path);
+    let _ = util::file::ensure_directory_exists(secret_path);
+    let secret = auth::read_google_secret(secret_path).await;
+    if secret.is_err() {
+        println!("You need to provide your secret at {:?}", secret_path.to_str());
+        return;
+    }
+
+    let store_path = util::file::get_absolute_path(".gcal/store.json").unwrap();
     let auth = oauth2::InstalledFlowAuthenticator::builder(
-        secret,
+        secret.unwrap(),
         oauth2::InstalledFlowReturnMethod::Interactive,
     )
-    .persist_tokens_to_disk(&secret_path.to_str().unwrap())
+    .persist_tokens_to_disk(&store_path.to_str().unwrap())
     .build()
     .await
     .unwrap();

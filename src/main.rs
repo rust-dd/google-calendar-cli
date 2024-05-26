@@ -4,7 +4,7 @@ use clap::{Arg, Command};
 use google_calendar3::{
     api::{Event, EventDateTime}, chrono::{Duration, NaiveDateTime, NaiveTime, Utc}
 };
-use util::auth;
+use util::calendar;
 
 #[tokio::main]
 
@@ -25,7 +25,7 @@ async fn main() {
         .get_matches();
 
         
-    let hub = match auth::auth().await {
+    let hub = match calendar::auth().await {
         Ok(hub) => hub,
         Err(e) => {
             eprintln!("Error during authentication: {}", e);

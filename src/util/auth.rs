@@ -1,4 +1,4 @@
-use std::{io::Error, path::Path};
+use std::{error::Error, path::Path};
 
 use google_calendar3::{
     hyper::{self, client::HttpConnector},
@@ -9,7 +9,7 @@ use google_calendar3::{
 
 use super::file;
 
-pub async fn auth() -> Result<CalendarHub<HttpsConnector<HttpConnector>>, std::io::Error> {
+pub async fn auth() -> Result<CalendarHub<HttpsConnector<HttpConnector>>, Box<dyn Error>> {
     let secret_absolute_path = file::get_absolute_path(".gcal/secret.json").unwrap();
     let secret_path = std::path::Path::new(&secret_absolute_path);
     let _ = file::ensure_directory_exists(secret_path);
@@ -22,8 +22,7 @@ pub async fn auth() -> Result<CalendarHub<HttpsConnector<HttpConnector>>, std::i
     )
     .persist_tokens_to_disk(&store_path.to_str().unwrap())
     .build()
-    .await
-    .unwrap();
+    .await?;
 
     let scopes = &[
         "https://www.googleapis.com/auth/calendar",
@@ -50,6 +49,6 @@ pub async fn auth() -> Result<CalendarHub<HttpsConnector<HttpConnector>>, std::i
     Ok(hub)
 }
 
-async fn read_google_secret(path: &Path) -> Result<ApplicationSecret, Error> {
-    return oauth2::read_application_secret(path).await;
+async fn read_google_secret(path: &Path) -> Result<ApplicationSecret, Box<dyn Error>> {
+    Ok(oauth2::read_application_secret(path).await?)
 }

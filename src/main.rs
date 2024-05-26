@@ -24,7 +24,14 @@ async fn main() {
         .subcommand(Command::new("list").about("Lists all events in Google Calendar"))
         .get_matches();
 
-    let hub = auth::auth().await.expect("Failed to authenticate and create CalendarHub");
+        
+    let hub = match auth::auth().await {
+        Ok(hub) => hub,
+        Err(e) => {
+            eprintln!("Error during authentication: {}", e);
+            return;
+        }
+    };
 
     match matches.subcommand() {
         Some(("list", _)) => {

@@ -1,8 +1,9 @@
 mod util;
 
 use clap::{Arg, Command};
+use comfy_table::{Attribute, Cell, Color, Table};
 use google_calendar3::{
-    api::{Event, EventDateTime}, chrono::{Duration, NaiveDateTime, NaiveTime, Utc}
+    api::{Event, EventDateTime}, chrono::{Datelike, Duration, Local, Month, NaiveDateTime, NaiveTime, Utc}
 };
 use util::calendar;
 
@@ -39,10 +40,36 @@ async fn main() {
                 .events()
                 .list("primary")
                 .time_min(Utc::now())
+                .time_max(Utc::now() + Duration::days(7))
                 .doit()
                 .await;
             match events {
                 Ok((_, events)) => {
+                    let mut table = Table::new();
+                    let now = Local::now();
+                    let days_to_subtract= now.weekday().num_days_from_monday() as i64;
+                    let start_of_the_week = now - Duration::days(days_to_subtract);
+                    
+                    let mut row: Vec<String> = vec![];
+                    for i in 0..7 {
+                        let next_date = start_of_the_week + Duration::days(i);
+                        let value = format!("{} {:?}", next_date.day(), Month::try_from(u8::try_from(next_date.month()).unwrap()).ok().unwrap());
+                        row.push(value);
+                    }
+
+                    table
+                        .set_header(vec![
+                            Cell::new("Monday").fg(Color::Green).add_attribute(Attribute::Bold),
+                            Cell::new("Tuesday").fg(Color::Green).add_attribute(Attribute::Bold),
+                            Cell::new("Wednesday").fg(Color::Green).add_attribute(Attribute::Bold),
+                            Cell::new("Thursday").fg(Color::Green).add_attribute(Attribute::Bold),
+                            Cell::new("Friday").fg(Color::Green).add_attribute(Attribute::Bold),
+                            Cell::new("Saturday").fg(Color::Blue),
+                            Cell::new("Sunday").fg(Color::Blue),
+                        ])
+                        .add_row(row);
+                
+                    println!("{table}");
                     if let Some(items) = events.items {
                         for event in items {
                             println!(

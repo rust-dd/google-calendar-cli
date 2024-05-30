@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use std::{collections::hash_map::Entry, fmt::Write};
 
 use clap::{Arg, Command};
-use comfy_table::{Attribute, Cell, Color, Table};
+use comfy_table::{Attribute, Cell, Color, ContentArrangement, Table};
 use google_calendar3::chrono::Timelike;
 use google_calendar3::{
     api::{Event, EventDateTime},
@@ -54,7 +54,7 @@ async fn main() {
                     let days_to_subtract = now.weekday().num_days_from_monday() as i64;
                     let start_of_the_week = now - Duration::days(days_to_subtract);
 
-                    let mut event_dates: HashMap<_, _> = HashMap::new();
+                    let mut event_dates: HashMap<_, Vec<_>> = HashMap::new();
 
                     if let Some(items) = events.items {
                         for event in items {
@@ -82,17 +82,16 @@ async fn main() {
                                 .unwrap()
                         );
                         write!(value, "\n\n").unwrap();
-                        
-                        let next_events = event_dates.get(&next_date.date_naive());
-                        if next_events.is_some() {
-                            let next_events_detail: Vec<Event> = next_events.unwrap().clone();
+
+                        if let Some(next_events) = event_dates.get(&next_date.date_naive()) {
+                            let next_events_detail: Vec<Event> = next_events.clone();
                             for next_event_details in next_events_detail {
                                 let next_event_details_start =
                                     next_event_details.start.unwrap().date_time.unwrap();
                                 write!(value, "\n\n").unwrap();
                                 write!(
                                     value,
-                                    "{:?}:{:?} {:?}",
+                                    "{:02}:{:02} {:?}",
                                     next_event_details_start.hour(),
                                     next_event_details_start.minute(),
                                     next_event_details.summary.unwrap().to_string()
@@ -123,7 +122,9 @@ async fn main() {
                             Cell::new("Saturday").fg(Color::Blue),
                             Cell::new("Sunday").fg(Color::Blue),
                         ])
-                        .add_row(row);
+                        .add_row(row)
+                        .set_content_arrangement(ContentArrangement::DynamicFullWidth);
+
 
                     println!("{table}");
                 }
@@ -145,7 +146,7 @@ async fn main() {
                     .await;
 
                 match result {
-                    Ok((_, event)) => println!("Event created: {:?}", event),
+                    Ok((_, event)) => println!("Event created: {:?}", event.html_link.unwrap().to_string()),
                     Err(e) => {
                         eprintln!("Error creating event: {:?}", e);
                     }

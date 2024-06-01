@@ -40,20 +40,21 @@ async fn main() {
 
     match matches.subcommand() {
         Some(("list", _)) => {
+            let now = Local::now();
+            let days_to_subtract = now.weekday().num_days_from_monday() as i64;
+            let start_of_the_week = now - Duration::days(days_to_subtract);
+            let start_of_the_week_utc = start_of_the_week.to_utc();
+
             let events = hub
                 .events()
                 .list("primary")
-                .time_min(Utc::now())
-                .time_max(Utc::now() + Duration::days(7))
+                .time_min(start_of_the_week_utc)
+                .time_max(start_of_the_week_utc + Duration::days(7))
                 .doit()
                 .await;
             match events {
                 Ok((_, events)) => {
-                    let mut table = Table::new();
-                    let now = Local::now();
-                    let days_to_subtract = now.weekday().num_days_from_monday() as i64;
-                    let start_of_the_week = now - Duration::days(days_to_subtract);
-
+                    let mut table: Table = Table::new();
                     let mut event_dates: HashMap<_, Vec<_>> = HashMap::new();
 
                     if let Some(items) = events.items {

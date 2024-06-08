@@ -21,12 +21,7 @@ git@github.com:zeldan/google-calendar-cli.git
 2. Build the project
 
 ```
-cargo build --release
-```
-
-3. Run the CLI tool
-```
-./target/release/gcal --help
+cargo install --path . --locked
 ```
 
 ## Usage

@@ -45,18 +45,20 @@ pub async fn auth() -> Result<CalendarHub<HttpsConnector<HttpConnector>>, Box<dy
     ];
 
     match auth.token(scopes).await {
-        Ok(_) => println!("User is authenticated."),
+        Ok(_) => {},
         Err(e) => println!("Authentication error: {:?}", e),
     }
 
+    let https_connector = hyper::Client::builder().build(
+        hyper_rustls::HttpsConnectorBuilder::new()
+            .with_native_roots()
+            .https_or_http()
+            .enable_http2()
+            .build(),
+    );
+
     let hub = CalendarHub::new(
-        hyper::Client::builder().build(
-            hyper_rustls::HttpsConnectorBuilder::new()
-                .with_native_roots()
-                .https_or_http()
-                .enable_http2()
-                .build(),
-        ),
+        https_connector,
         auth,
     );
     Ok(hub)

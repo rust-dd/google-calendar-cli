@@ -12,16 +12,11 @@ Happy scheduling!
 
 ## Installation
 
-1. Clone this repository
 
 ```
 git@github.com:zeldan/google-calendar-cli.git
-```
-
-2. Build the project
-
-```
-cargo install --path . --locked
+cd google-calendar-cli
+cargo build && cargo install --path . --locked
 ```
 
 ## Usage
@@ -51,8 +46,13 @@ gcal "Appointment on June 3rd 10am-10:25am"
 Add event with specifying the date.
 
 ```
+gcal "Appointment" "2024-07-12 10:25"
+```
+```
 gcal add "Appointment" "2024-07-12 10:25"
 ```
+
+
 
 
 List events
@@ -112,3 +112,4 @@ This guide will help you set up OAuth2 authentication for your Google Calendar A
 The resulting token will be stored in the `~/.gcal/store.json` file.
 
 By following these steps, you will have successfully set up OAuth2 authentication for your Google Calendar API using gcalcli.
+

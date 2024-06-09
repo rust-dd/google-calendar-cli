@@ -8,9 +8,10 @@ use comfy_table::{Attribute, Cell, Color, ContentArrangement, Table};
 use google_calendar3::chrono::Timelike;
 use google_calendar3::{
     api::{Event, EventDateTime},
-    chrono::{Datelike, Duration, Local, Month, NaiveDateTime, NaiveTime, Utc},
+    chrono::{Datelike, Duration, Month, NaiveDateTime, NaiveTime, Utc},
 };
 use util::calendar;
+use util::date::{days_in_english, get_start_of_the_week};
 
 #[tokio::main]
 
@@ -26,7 +27,16 @@ async fn main() {
                 .required(false),
         )
         .arg(Arg::new("date").help("Sets the event date").required(false))
-        .subcommand(Command::new("add").about("Adds a new event to Google Calendar"))
+        .subcommand(
+            Command::new("add")
+                .about("Adds a new event to Google Calendar")
+                .arg(
+                    Arg::new("title")
+                        .help("Sets the event title")
+                        .required(true),
+                )
+                .arg(Arg::new("date").help("Sets the event date").required(true)),
+        )
         .subcommand(Command::new("list").about("Lists all events in Google Calendar"))
         .get_matches();
 
@@ -40,9 +50,7 @@ async fn main() {
 
     match matches.subcommand() {
         Some(("list", _)) => {
-            let now = Local::now();
-            let days_to_subtract = now.weekday().num_days_from_monday() as i64;
-            let start_of_the_week = now - Duration::days(days_to_subtract);
+            let start_of_the_week = get_start_of_the_week();
             let start_of_the_week_utc = start_of_the_week.to_utc();
 
             let events = hub
@@ -73,59 +81,57 @@ async fn main() {
                     }
 
                     let mut row: Vec<String> = vec![];
-                    for i in 0..7 {
+                    let mut header: Vec<Cell> = vec![];
+                    for (i, v) in days_in_english().iter().enumerate() {
+                        let i = i as i64;
                         let next_date = start_of_the_week + Duration::days(i);
-                        let mut value = format!(
-                            "{} {:?}",
+                        let header_value = format!(
+                            "{} - {} {:?}",
+                            v,
                             next_date.day(),
                             Month::try_from(u8::try_from(next_date.month()).unwrap())
                                 .ok()
                                 .unwrap()
                         );
-                        write!(value, "\n\n").unwrap();
+                        println!("{}", i);
+                        if i < 5 {
+                            header.push(
+                                Cell::new(header_value)
+                                    .fg(Color::DarkGreen)
+                                    .add_attribute(Attribute::Bold),
+                            );
+                        } else {
+                            header.push(
+                                Cell::new(header_value)
+                                    .fg(Color::DarkBlue)
+                            );
+                        }
+                        
 
+                        let mut row_value: String = "".to_string();
                         if let Some(next_events) = event_dates.get(&next_date.date_naive()) {
                             let next_events_detail: Vec<Event> = next_events.clone();
                             for next_event_details in next_events_detail {
                                 let next_event_details_start =
                                     next_event_details.start.unwrap().date_time.unwrap();
-                                write!(value, "\n\n").unwrap();
                                 write!(
-                                    value,
+                                    row_value,
                                     "{:02}:{:02} {:?}",
                                     next_event_details_start.hour(),
                                     next_event_details_start.minute(),
                                     next_event_details.summary.unwrap().to_string()
                                 )
                                 .unwrap();
+                                write!(row_value, "\n\n").unwrap();
                             }
                         }
-                        row.push(value);
+                        row.push(row_value);
                     }
 
                     table
-                        .set_header(vec![
-                            Cell::new("Monday")
-                                .fg(Color::Green)
-                                .add_attribute(Attribute::Bold),
-                            Cell::new("Tuesday")
-                                .fg(Color::Green)
-                                .add_attribute(Attribute::Bold),
-                            Cell::new("Wednesday")
-                                .fg(Color::Green)
-                                .add_attribute(Attribute::Bold),
-                            Cell::new("Thursday")
-                                .fg(Color::Green)
-                                .add_attribute(Attribute::Bold),
-                            Cell::new("Friday")
-                                .fg(Color::Green)
-                                .add_attribute(Attribute::Bold),
-                            Cell::new("Saturday").fg(Color::Blue),
-                            Cell::new("Sunday").fg(Color::Blue),
-                        ])
+                        .set_header(header)
                         .add_row(row)
                         .set_content_arrangement(ContentArrangement::DynamicFullWidth);
-
 
                     println!("{table}");
                 }
@@ -147,7 +153,9 @@ async fn main() {
                     .await;
 
                 match result {
-                    Ok((_, event)) => println!("Event created: {:?}", event.html_link.unwrap().to_string()),
+                    Ok((_, event)) => {
+                        println!("Event created: {:?}", event.html_link.unwrap().to_string())
+                    }
                     Err(e) => {
                         eprintln!("Error creating event: {:?}", e);
                     }
@@ -171,7 +179,9 @@ async fn main() {
                 let result = hub.events().insert(event, "primary").doit().await;
 
                 match result {
-                    Ok((_, event)) => println!("Event created: {:?}", event),
+                    Ok((_, event)) => {
+                        println!("Event created: {:?}", event.html_link.unwrap().to_string())
+                    }
                     Err(e) => {
                         eprintln!("Error creating event: {:?}", e);
                     }

@@ -67,6 +67,10 @@ async fn main() {
 
                     if let Some(items) = events.items {
                         for event in items {
+                            if event.start.clone().is_none() || event.start.clone().unwrap().date_time.is_none() {
+                                // TODO: show full day event in the last
+                                continue;
+                            }
                             let event_start =
                                 event.clone().start.unwrap().date_time.unwrap().date_naive();
                             match event_dates.entry(event_start) {
@@ -93,7 +97,6 @@ async fn main() {
                                 .ok()
                                 .unwrap()
                         );
-                        println!("{}", i);
                         if i < 5 {
                             header.push(
                                 Cell::new(header_value)

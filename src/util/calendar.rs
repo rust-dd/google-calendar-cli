@@ -32,7 +32,7 @@ pub async fn auth() -> Result<CalendarHub<HttpsConnector<HttpConnector>>, Box<dy
     let store_path = file::get_absolute_path(".gcal/store.json")?;
     let auth = oauth2::InstalledFlowAuthenticator::builder(
         secret,
-        oauth2::InstalledFlowReturnMethod::Interactive,
+        oauth2::InstalledFlowReturnMethod::HTTPRedirect,
     )
     .persist_tokens_to_disk(&store_path.to_str().unwrap())
     .build()

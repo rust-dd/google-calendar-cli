@@ -84,7 +84,8 @@ async fn main() {
                         }
                     }
 
-                    let mut row: Vec<String> = vec![];
+                    let mut row_before_12: Vec<String> = vec![];
+                    let mut row_after_12: Vec<String> = vec![];
                     let mut header: Vec<Cell> = vec![];
                     for (i, v) in days_in_english().iter().enumerate() {
                         let i = i as i64;
@@ -110,30 +111,36 @@ async fn main() {
                             );
                         }
                         
-
-                        let mut row_value: String = "".to_string();
+                        let mut row_value_before_12: String = "".to_string();
+                        let mut row_value_after_12: String = "".to_string();
                         if let Some(next_events) = event_dates.get(&next_date.date_naive()) {
                             let next_events_detail: Vec<Event> = next_events.clone();
-                            for next_event_details in next_events_detail {
-                                let next_event_details_start =
-                                    next_event_details.start.unwrap().date_time.unwrap();
-                                write!(
-                                    row_value,
-                                    "{:02}:{:02} {:?}",
-                                    next_event_details_start.hour(),
-                                    next_event_details_start.minute(),
-                                    next_event_details.summary.unwrap().to_string()
-                                )
-                                .unwrap();
-                                write!(row_value, "\n\n").unwrap();
+                            for next_event in next_events_detail {
+                                let event_start = next_event.start.unwrap().date_time.unwrap();
+                                let summary = next_event.summary.unwrap().to_string();
+                                let formatted_event = format!(
+                                    "{:02}:{:02} - {:?}\n\n",
+                                    event_start.hour() ,
+                                    event_start.minute(),
+                                    summary
+                                );
+                            
+                                if event_start.hour() < 12 {
+                                    write!(row_value_before_12, "{}", formatted_event).unwrap();
+                                } else {
+                                    write!(row_value_after_12, "{}", formatted_event).unwrap();
+                                }
                             }
+                            
                         }
-                        row.push(row_value);
+                        row_before_12.push(row_value_before_12);
+                        row_after_12.push(row_value_after_12);
                     }
 
                     table
                         .set_header(header)
-                        .add_row(row)
+                        .add_row(row_before_12)
+                        .add_row(row_after_12)
                         .set_content_arrangement(ContentArrangement::DynamicFullWidth);
 
                     println!("{table}");

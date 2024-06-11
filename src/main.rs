@@ -43,7 +43,7 @@ async fn main() {
     let hub = match calendar::auth().await {
         Ok(hub) => hub,
         Err(e) => {
-            eprintln!("Error during authentication: {}", e);
+            eprintln!("Error during authentication - {}", e);
             return;
         }
     };

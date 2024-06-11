@@ -1,5 +1,6 @@
 use std::{error::Error, path::Path};
 
+use anyhow::{Context, Result};
 use google_calendar3::{
     hyper::{self, client::HttpConnector},
     hyper_rustls::{self, HttpsConnector},
@@ -57,10 +58,7 @@ pub async fn auth() -> Result<CalendarHub<HttpsConnector<HttpConnector>>, Box<dy
             .build(),
     );
 
-    let hub = CalendarHub::new(
-        https_connector,
-        auth,
-    );
+    let hub = CalendarHub::new(https_connector, auth);
     Ok(hub)
 }
 
@@ -74,13 +72,16 @@ pub async fn auth() -> Result<CalendarHub<HttpsConnector<HttpConnector>>, Box<dy
 ///
 /// ## Returns
 ///
-/// * `Result<ApplicationSecret, Box<dyn Error>>` - A result containing the ApplicationSecret or an error if the file cannot be read.
+/// * `Result<ApplicationSecret, anyhow::Error>` - A result containing the ApplicationSecret or an error if the file cannot be read.
 ///
 /// ## Errors
 ///
 /// This function will return an error if:
 /// - The file cannot be read.
 /// - The contents of the file cannot be parsed into an ApplicationSecret.
-async fn read_google_secret(path: &Path) -> Result<ApplicationSecret, Box<dyn Error>> {
-    Ok(oauth2::read_application_secret(path).await?)
+async fn read_google_secret(path: &Path) -> Result<ApplicationSecret> {
+    let secret = oauth2::read_application_secret(path)
+        .await
+        .with_context(|| format!("Failed to read the Google application secret file from path {:?}.", path))?;
+    Ok(secret)
 }

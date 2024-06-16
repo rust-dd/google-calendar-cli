@@ -67,8 +67,10 @@ async fn main() {
 
                     if let Some(items) = events.items {
                         for event in items {
-                            if event.start.clone().is_none() || event.start.clone().unwrap().date_time.is_none() {
-                                // TODO: show full day event in the last
+                            if event.start.clone().is_none()
+                                || event.start.clone().unwrap().date_time.is_none()
+                            {
+                                // TODO: show full day event
                                 continue;
                             }
                             let event_start =
@@ -105,33 +107,36 @@ async fn main() {
                                     .add_attribute(Attribute::Bold),
                             );
                         } else {
-                            header.push(
-                                Cell::new(header_value)
-                                    .fg(Color::DarkBlue)
-                            );
+                            header.push(Cell::new(header_value).fg(Color::DarkBlue));
                         }
-                        
+
                         let mut row_value_before_12: String = "".to_string();
                         let mut row_value_after_12: String = "".to_string();
                         if let Some(next_events) = event_dates.get(&next_date.date_naive()) {
-                            let next_events_detail: Vec<Event> = next_events.clone();
-                            for next_event in next_events_detail {
+                            let mut next_events_sorted: Vec<Event> = next_events.clone();
+                            next_events_sorted.sort_by(|a, b| {
+                                    a.start.as_ref()
+                                        .unwrap()
+                                        .date_time
+                                        .unwrap()
+                                        .cmp(&b.start.as_ref().unwrap().date_time.unwrap())
+                                });
+                            for next_event in next_events_sorted {
                                 let event_start = next_event.start.unwrap().date_time.unwrap();
                                 let summary = next_event.summary.unwrap().to_string();
                                 let formatted_event = format!(
                                     "{:02}:{:02} - {:?}\n\n",
-                                    event_start.hour() ,
+                                    event_start.hour(),
                                     event_start.minute(),
                                     summary
                                 );
-                            
+
                                 if event_start.hour() < 12 {
                                     write!(row_value_before_12, "{}", formatted_event).unwrap();
                                 } else {
                                     write!(row_value_after_12, "{}", formatted_event).unwrap();
                                 }
                             }
-                            
                         }
                         row_before_12.push(row_value_before_12);
                         row_after_12.push(row_value_after_12);

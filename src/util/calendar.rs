@@ -1,6 +1,7 @@
 use std::{error::Error, path::Path};
 
 use anyhow::{Context, Result};
+use chrono_tz::Tz;
 use google_calendar3::{
     hyper::{self, client::HttpConnector},
     hyper_rustls::{self, HttpsConnector},
@@ -60,6 +61,20 @@ pub async fn auth() -> Result<CalendarHub<HttpsConnector<HttpConnector>>, Box<dy
 
     let hub = CalendarHub::new(https_connector, auth);
     Ok(hub)
+}
+
+
+pub async fn get_default_timezone(hub: &CalendarHub<HttpsConnector<HttpConnector>>) -> Result<Tz> {
+    let result = hub.settings().list().doit().await;
+    let settings = result.unwrap().1.items.unwrap_or_default();
+
+    let timezone_setting = settings.iter()
+        .find(|setting| setting.id == Some("timezone".to_string()))
+        .ok_or("Timezone setting not found");
+
+    let timezone = timezone_setting.unwrap();
+    let tz: Tz = timezone.value.as_ref().unwrap().parse().unwrap();
+    Ok(tz)
 }
 
 /// Reads the Google application secret from the specified path.

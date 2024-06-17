@@ -3,14 +3,15 @@ mod util;
 use std::collections::HashMap;
 use std::{collections::hash_map::Entry, fmt::Write};
 
+use chrono_tz::Tz;
 use clap::{Arg, Command};
 use comfy_table::{Attribute, Cell, Color, ContentArrangement, Table};
-use google_calendar3::chrono::Timelike;
+use google_calendar3::chrono::{TimeZone, Timelike};
 use google_calendar3::{
     api::{Event, EventDateTime},
     chrono::{Datelike, Duration, Month, NaiveDateTime, NaiveTime, Utc},
 };
-use util::calendar;
+use util::calendar::{self, get_default_timezone};
 use util::date::{days_in_english, get_start_of_the_week};
 
 #[tokio::main]
@@ -47,6 +48,8 @@ async fn main() {
             return;
         }
     };
+
+    let tz: Tz = get_default_timezone(&hub).await.unwrap();
 
     match matches.subcommand() {
         Some(("list", _)) => {
@@ -126,7 +129,7 @@ async fn main() {
                                 let summary = next_event.summary.unwrap().to_string();
                                 let formatted_event = format!(
                                     "{:02}:{:02} - {:?}\n\n",
-                                    event_start.hour(),
+                                    tz.from_utc_datetime(&event_start.naive_local()).hour(),
                                     event_start.minute(),
                                     summary
                                 );

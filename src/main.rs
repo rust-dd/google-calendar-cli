@@ -70,14 +70,14 @@ async fn main() {
 
                     if let Some(items) = events.items {
                         for event in items {
-                            if event.start.clone().is_none()
-                                || event.start.clone().unwrap().date_time.is_none()
+                            if event.start.as_ref().is_none()
+                                || event.start.as_ref().unwrap().date_time.is_none()
                             {
                                 // TODO: show full day event
                                 continue;
                             }
                             let event_start =
-                                event.clone().start.unwrap().date_time.unwrap().date_naive();
+                                event.start.as_ref().unwrap().date_time.unwrap().date_naive();
                             match event_dates.entry(event_start) {
                                 Entry::Vacant(e) => {
                                     e.insert(vec![event]);
@@ -115,18 +115,17 @@ async fn main() {
 
                         let mut row_value_before_12: String = "".to_string();
                         let mut row_value_after_12: String = "".to_string();
-                        if let Some(next_events) = event_dates.get(&next_date.date_naive()) {
-                            let mut next_events_sorted: Vec<Event> = next_events.clone();
-                            next_events_sorted.sort_by(|a, b| {
+                        if let Some(next_events) = event_dates.get_mut(&next_date.date_naive()) {
+                            next_events.sort_by(|a, b| {
                                     a.start.as_ref()
                                         .unwrap()
                                         .date_time
                                         .unwrap()
                                         .cmp(&b.start.as_ref().unwrap().date_time.unwrap())
                                 });
-                            for next_event in next_events_sorted {
-                                let event_start = next_event.start.unwrap().date_time.unwrap();
-                                let summary = next_event.summary.unwrap().to_string();
+                            for next_event in next_events {
+                                let event_start = next_event.start.as_ref().unwrap().date_time.unwrap();
+                                let summary = next_event.summary.as_ref().unwrap().to_string();
                                 let formatted_event = format!(
                                     "{:02}:{:02} - {:?}\n\n",
                                     tz.from_utc_datetime(&event_start.naive_local()).hour(),
@@ -166,7 +165,7 @@ async fn main() {
             if date.is_none() {
                 let result = hub
                     .events()
-                    .quick_add("primary", title.unwrap())
+                    .quick_add("primary", title.as_ref().unwrap())
                     .doit()
                     .await;
 
@@ -183,7 +182,7 @@ async fn main() {
                 let parsed_time = NaiveTime::parse_from_str(date.unwrap(), "%H:%M");
                 let combined = NaiveDateTime::new(current_date.date(), parsed_time.unwrap());
                 let event = Event {
-                    summary: Some(title.unwrap().clone()),
+                    summary: Some(title.unwrap().to_string()),
                     start: Some(EventDateTime {
                         date_time: Some(combined.and_utc()),
                         ..Default::default()

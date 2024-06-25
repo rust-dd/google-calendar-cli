@@ -70,10 +70,6 @@ async fn main() {
 
                     if let Some(items) = events.items {
                         for event in items {
-                            println!("{:?}", event.clone());
-                            println!("html link: {}", event.clone().html_link.unwrap_or_default());
-                            println!("summar:y {}", event.clone().summary.unwrap_or_default());
-                            println!("--------");
                             if event.start.as_ref().is_none()
                                 || event.start.as_ref().unwrap().date_time.is_none()
                             {

@@ -54,7 +54,7 @@ async fn main() {
     match matches.subcommand() {
         Some(("list", _)) => {
             let start_of_the_week = get_start_of_the_week();
-            let start_of_the_week_utc = start_of_the_week.to_utc();
+            let start_of_the_week_utc = start_of_the_week.with_hour(0).unwrap().to_utc();
 
             let events = hub
                 .events()
@@ -70,10 +70,13 @@ async fn main() {
 
                     if let Some(items) = events.items {
                         for event in items {
+                            println!("{:?}", event.clone());
+                            println!("html link: {}", event.clone().html_link.unwrap_or_default());
+                            println!("summar:y {}", event.clone().summary.unwrap_or_default());
+                            println!("--------");
                             if event.start.as_ref().is_none()
                                 || event.start.as_ref().unwrap().date_time.is_none()
                             {
-                                // TODO: show full day event
                                 continue;
                             }
                             let event_start =

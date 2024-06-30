@@ -177,17 +177,19 @@ async fn main() {
                     }
                 }
             } else {
-                let current_date = Utc::now().naive_utc();
+                let current_date = Utc::now().date_naive();
                 let parsed_time = NaiveTime::parse_from_str(date.unwrap(), "%H:%M");
-                let combined = NaiveDateTime::new(current_date.date(), parsed_time.unwrap());
+                let combined_naive = NaiveDateTime::new(current_date, parsed_time.unwrap());
+                let event_date_with_timezone = tz.from_local_datetime(&combined_naive).unwrap();
+
                 let event = Event {
                     summary: Some(title.unwrap().to_string()),
                     start: Some(EventDateTime {
-                        date_time: Some(combined.and_utc()),
+                        date_time: Some(event_date_with_timezone.naive_utc().and_utc()),
                         ..Default::default()
                     }),
                     end: Some(EventDateTime {
-                        date_time: Some(combined.and_utc() + Duration::hours(1)),
+                        date_time: Some(event_date_with_timezone.naive_utc().and_utc() + Duration::hours(1)),
                         ..Default::default()
                     }),
                     ..Default::default()

@@ -45,8 +45,12 @@ gcal "Appointment on June 3rd 10am-10:25am"
 
 Add event with specifying the date.
 
+
 ```
-gcal "Appointment" "2024-07-12 10:25"
+gcal "Appointment" "10:25"
+```
+```
+gcal "Appointment" "07-13 23:25"
 ```
 ```
 gcal add "Appointment" "2024-07-12 10:25"

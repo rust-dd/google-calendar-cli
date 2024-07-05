@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use std::{collections::hash_map::Entry, fmt::Write};
 
 use chrono_tz::Tz;
-use clap::{Arg, Command};
+use clap::{Arg, ArgAction, Command};
 use comfy_table::{Attribute, Cell, Color, ContentArrangement, Table};
 use google_calendar3::chrono::{TimeZone, Timelike};
 use google_calendar3::{
@@ -28,6 +28,15 @@ async fn main() {
                 .required(false),
         )
         .arg(Arg::new("date").help("Sets the event date").required(false))
+        .arg(
+            Arg::new("conference")
+                .help("Indicates that this event will be a conference Google Meet")
+                .long("conference")
+                .short('c')
+                .action(ArgAction::SetTrue)
+                .required(false)
+                .requires("title"),
+        )
         .subcommand(
             Command::new("add")
                 .about("Adds a new event to Google Calendar")
@@ -157,9 +166,12 @@ async fn main() {
         Some(("add", _)) | _ => {
             let title = matches.get_one::<String>("title");
             let date = matches.get_one::<String>("date");
+            // let conference = matches.get_one::<bool>("conference");
             if title.is_none() {
                 return;
             }
+
+            // println!("conference: {:?}", conference);
 
             if date.is_none() {
                 let result = hub
@@ -180,16 +192,16 @@ async fn main() {
                 let current_date = Utc::now().date_naive();
                 let parsed_time = NaiveTime::parse_from_str(date.unwrap(), "%H:%M");
                 let combined_naive = NaiveDateTime::new(current_date, parsed_time.unwrap());
-                let event_date_with_timezone = tz.from_local_datetime(&combined_naive).unwrap();
+                let event_date_with_timezone = tz.from_local_datetime(&combined_naive).unwrap().naive_utc().and_utc();
 
                 let event = Event {
                     summary: Some(title.unwrap().to_string()),
                     start: Some(EventDateTime {
-                        date_time: Some(event_date_with_timezone.naive_utc().and_utc()),
+                        date_time: Some(event_date_with_timezone),
                         ..Default::default()
                     }),
                     end: Some(EventDateTime {
-                        date_time: Some(event_date_with_timezone.naive_utc().and_utc() + Duration::hours(1)),
+                        date_time: Some(event_date_with_timezone + Duration::hours(1)),
                         ..Default::default()
                     }),
                     ..Default::default()

@@ -11,3 +11,11 @@ comfy-table = "7.1.1"
 dirs = "5.0.1"
 google-calendar3 = "5.0.4"
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+
+[dependencies.uuid]
+version = "1.9.1"
+features = [
+    "v4",                # Lets you generate random UUIDs
+    "fast-rng",          # Use a faster (but still sufficiently random) RNG
+    "macro-diagnostics", # Enable better diagnostics for compile-time UUIDs
+]

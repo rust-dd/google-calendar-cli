@@ -6,6 +6,7 @@ use std::{collections::hash_map::Entry, fmt::Write};
 use chrono_tz::Tz;
 use clap::{Arg, ArgAction, Command};
 use comfy_table::{Attribute, Cell, Color, ContentArrangement, Table};
+use google_calendar3::api::{ConferenceData, ConferenceSolutionKey, CreateConferenceRequest};
 use google_calendar3::chrono::{TimeZone, Timelike};
 use google_calendar3::{
     api::{Event, EventDateTime},
@@ -13,6 +14,7 @@ use google_calendar3::{
 };
 use util::calendar::{self, get_default_timezone};
 use util::date::{days_in_english, get_start_of_the_week};
+use uuid::Uuid;
 
 #[tokio::main]
 
@@ -166,12 +168,10 @@ async fn main() {
         Some(("add", _)) | _ => {
             let title = matches.get_one::<String>("title");
             let date = matches.get_one::<String>("date");
-            // let conference = matches.get_one::<bool>("conference");
+            let conference = matches.get_one::<bool>("conference");
             if title.is_none() {
                 return;
             }
-
-            // println!("conference: {:?}", conference);
 
             if date.is_none() {
                 let result = hub
@@ -194,7 +194,7 @@ async fn main() {
                 let combined_naive = NaiveDateTime::new(current_date, parsed_time.unwrap());
                 let event_date_with_timezone = tz.from_local_datetime(&combined_naive).unwrap().naive_utc().and_utc();
 
-                let event = Event {
+                let mut event = Event {
                     summary: Some(title.unwrap().to_string()),
                     start: Some(EventDateTime {
                         date_time: Some(event_date_with_timezone),
@@ -206,11 +206,24 @@ async fn main() {
                     }),
                     ..Default::default()
                 };
-                let result = hub.events().insert(event, "primary").doit().await;
+                if conference.map_or(false, |&c| c) {
+                    event.conference_data = Some(ConferenceData {
+                        create_request: Some(CreateConferenceRequest {
+                            request_id: Some(Uuid::new_v4().to_string()),
+                            conference_solution_key: Some(ConferenceSolutionKey {
+                                type_: Some("hangoutsMeet".to_string()),
+                            }),
+                            ..Default::default()
+                        }),
+                        ..Default::default()
+                    });
+                }
+                    
+                let result = hub.events().insert(event, "primary").conference_data_version(1).doit().await;
 
                 match result {
                     Ok((_, event)) => {
-                        println!("Event created: {:?}", event.html_link.unwrap().to_string())
+                        println!("Event created: {:?}", event.html_link.unwrap().to_string());
                     }
                     Err(e) => {
                         eprintln!("Error creating event: {:?}", e);

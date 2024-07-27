@@ -4,7 +4,7 @@ This project is a command-line interface (CLI) tool written in Rust for managing
 
 *Note: This project is in a very early phase, and many features are still missing. It is currently a playground project, meant for exploration and experimentation.*
 
-
+![Screenshot](docs/screenshot.png)
 
 Happy scheduling!
 
@@ -14,7 +14,7 @@ Happy scheduling!
 
 
 ```
-git@github.com:zeldan/google-calendar-cli.git
+git clone git@github.com:zeldan/google-calendar-cli.git
 cd google-calendar-cli
 cargo build && cargo install --path . --locked
 ```
@@ -56,8 +56,10 @@ gcal "Appointment" "07-13 23:25"
 gcal add "Appointment" "2024-07-12 10:25"
 ```
 
-
-
+Add event with conference meeting
+```
+gcal "Appointment" "23:45" --conference
+```
 
 List events
 

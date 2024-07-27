@@ -10,10 +10,10 @@ use google_calendar3::api::{ConferenceData, ConferenceSolutionKey, CreateConfere
 use google_calendar3::chrono::{TimeZone, Timelike};
 use google_calendar3::{
     api::{Event, EventDateTime},
-    chrono::{Datelike, Duration, Month, NaiveDateTime, NaiveTime, Utc},
+    chrono::{Datelike, Duration, Month},
 };
 use util::calendar::{self, get_default_timezone};
-use util::date::{days_in_english, get_start_of_the_week};
+use util::date::{days_in_english, get_date_from_string, get_start_of_the_week};
 use uuid::Uuid;
 
 #[tokio::main]
@@ -189,11 +189,7 @@ async fn main() {
                     }
                 }
             } else {
-                let current_date = Utc::now().date_naive();
-                let parsed_time = NaiveTime::parse_from_str(date.unwrap(), "%H:%M");
-                let combined_naive = NaiveDateTime::new(current_date, parsed_time.unwrap());
-                let event_date_with_timezone = tz.from_local_datetime(&combined_naive).unwrap().naive_utc().and_utc();
-
+                let event_date_with_timezone = get_date_from_string(tz, date.unwrap());
                 let mut event = Event {
                     summary: Some(title.unwrap().to_string()),
                     start: Some(EventDateTime {

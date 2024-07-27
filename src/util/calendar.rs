@@ -53,7 +53,7 @@ pub async fn auth() -> Result<CalendarHub<HttpsConnector<HttpConnector>>, Box<dy
 
     let https_connector = hyper::Client::builder().build(
         hyper_rustls::HttpsConnectorBuilder::new()
-            .with_native_roots()
+            .with_native_roots()?
             .https_or_http()
             .enable_http2()
             .build(),

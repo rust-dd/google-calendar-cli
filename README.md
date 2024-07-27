@@ -1,5 +1,7 @@
 # Google Calendar CLI - gcal
 
+![example workflow](https://github.com/zeldan/google-calendar-cli/actions/workflows/rust.yml/badge.svg)
+
 This project is a command-line interface (CLI) tool written in Rust for managing your Google Calendar. The primary purpose is to allow users to interact with their Google Calendar directly from the terminal. Adding a new event or listing them should be very easy and quick.
 
 *Note: This project is in a very early phase, and many features are still missing. It is currently a playground project, meant for exploration and experimentation.*

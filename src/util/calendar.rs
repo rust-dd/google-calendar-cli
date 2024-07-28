@@ -35,7 +35,7 @@ pub async fn auth() -> Result<CalendarHub<HttpsConnector<HttpConnector>>, Box<dy
         secret,
         oauth2::InstalledFlowReturnMethod::HTTPRedirect,
     )
-    .persist_tokens_to_disk(&store_path.to_str().unwrap())
+    .persist_tokens_to_disk(&store_path)
     .build()
     .await?;
 

@@ -40,8 +40,8 @@ pub fn get_start_of_the_week() -> DateTime<Local> {
 ///     "Sunday".to_string()
 /// ]);
 /// ```
-pub fn days_in_english() -> Vec<String> {
-    const DAYS: [&str; 7] = [
+pub fn days_in_english() -> [&'static str; 7] {
+    let days = [
         "Monday",
         "Tuesday",
         "Wednesday",
@@ -51,15 +51,16 @@ pub fn days_in_english() -> Vec<String> {
         "Sunday",
     ];
 
-    DAYS.iter().map(|&day| day.to_string()).collect()
+    days
 }
 
 /// Converts a date string to a `DateTime<Utc>` based on the provided timezone.
 ///
-/// This function accepts a date string that can be either in the format `HH:MM`
-/// or `YYYY-MM-DD HH:MM`. It will parse the string and convert it to a `DateTime<Utc>`
-/// considering the given timezone. If the string is in the `HH:MM` format, it will
-/// use the current date combined with the provided time.
+/// This function accepts a date string that can be either in the format `HH:MM`, 
+/// `YYYY-MM-DD HH:MM`, or `MM-DD HH:MM`. It will parse the string and convert it to a 
+/// `DateTime<Utc>` considering the given timezone. If the string is in the `HH:MM` format, 
+/// it will use the current date combined with the provided time. If the string is in the 
+/// `MM-DD HH:MM` format, it will use the current year combined with the provided month, day, and time.
 ///
 /// # Arguments
 ///
@@ -83,6 +84,10 @@ pub fn days_in_english() -> Vec<String> {
 /// let time_str = String::from("15:30");
 /// let utc_time = get_date_from_string(tz, &time_str);
 /// println!("{}", utc_time); // Outputs the current date with the provided time in UTC
+///
+/// let month_day_time_str = String::from("07-27 15:30");
+/// let utc_month_day_time = get_date_from_string(tz, &month_day_time_str);
+/// println!("{}", utc_month_day_time); // Outputs the current year with the provided month, day, and time in UTC
 /// ```
 pub fn get_date_from_string(tz: Tz, date: &String) -> DateTime<Utc> {
     if let Ok(parsed_time) = NaiveTime::parse_from_str(date, "%H:%M") {
@@ -94,8 +99,19 @@ pub fn get_date_from_string(tz: Tz, date: &String) -> DateTime<Utc> {
             .naive_utc()
             .and_utc();
         return event_date_with_timezone;
+    } else if let Ok(parsed_time) = NaiveDateTime::parse_from_str(date, "%Y-%m-%d %H:%M") {
+        let event_date_with_timezone = tz
+            .from_local_datetime(&parsed_time)
+            .unwrap()
+            .naive_utc()
+            .and_utc();
+        return event_date_with_timezone;
     } else {
-        let parsed_time = NaiveDateTime::parse_from_str(date, "%Y-%m-%d %H:%M");
+        let parsed_time = NaiveDateTime::parse_from_str(
+            &format!("{}-{}", Utc::now().year(), date),
+            "%Y-%m-%d %H:%M",
+        );
+        print!("{}", &format!("{}-{}", Utc::now().year(), date));
         let combined_naive = parsed_time.unwrap();
         let event_date_with_timezone = tz
             .from_local_datetime(&combined_naive)

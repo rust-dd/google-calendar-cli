@@ -135,11 +135,14 @@ async fn main() {
                                 });
                             for next_event in next_events {
                                 let event_start = next_event.start.as_ref().unwrap().date_time.unwrap();
+                                let event_end = next_event.end.as_ref().unwrap().date_time.unwrap();
                                 let summary = next_event.summary.as_ref().unwrap().to_string();
                                 let formatted_event = format!(
-                                    "{:02}:{:02} - {:?}\n\n",
+                                    "{:02}:{:02} - {:02}:{:02}: {}\n\n",
                                     tz.from_utc_datetime(&event_start.naive_local()).hour(),
                                     event_start.minute(),
+                                    tz.from_utc_datetime(&event_end.naive_local()).hour(),
+                                    event_end.minute(),
                                     summary
                                 );
 

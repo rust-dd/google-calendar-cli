@@ -30,44 +30,17 @@ cargo build && cargo install --path . --locked
 gcal help
 ```
 
-### Add event
+### Example commands
 
-
-Quick event for today
-
-```
-gcal "Retro & Demo at 16:00"
-```
-
-Quick event on a specific date
-
-```
-gcal "Appointment on June 3rd 10am-10:25am"
-```
-
-Add event with specifying the date.
-
-
-```
-gcal "Appointment" "10:25"
-```
-```
-gcal "Appointment" "07-13 23:25"
-```
-```
-gcal add "Appointment" "2024-07-12 10:25"
-```
-
-Add event with conference meeting
-```
-gcal "Appointment" "23:45" --conference
-```
-
-List events
-
-```
-gcal list
-```
+| Description                          | Command                                          |
+|--------------------------------------|--------------------------------------------------|
+| Quick event for today                | `gcal "Retro & Demo at 16:00"`                   |
+| Quick event on a specific date       | `gcal "Appointment on June 3rd 10am-10:25am"`    |
+| Add event specifying only the time   | `gcal "Appointment" "10:25"`                     |
+| Add event with month and day         | `gcal "Appointment" "07-13 23:25"`               |
+| Add event with full date and time    | `gcal add "Appointment" "2024-07-12 10:25"`      |
+| Add event with conference meeting    | `gcal "Appointment" "23:45" --conference`        |
+| List events                          | `gcal list`                                      |
 
 
 ## Authentication

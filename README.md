@@ -80,3 +80,12 @@ How it works in the background ?
 2. Follow the instructions to complete the authentication process.
 
 The resulting token will be stored in the `~/.gcal/store.json` file.
+
+
+## Development
+
+For example, you can list the events using the following command:
+
+```
+cargo run -- list
+```

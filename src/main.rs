@@ -72,6 +72,7 @@ async fn main() {
                 .list("primary")
                 .time_min(start_of_the_week_utc)
                 .time_max(start_of_the_week_utc + Duration::days(7))
+                .single_events(true)
                 .doit()
                 .await;
             match events {

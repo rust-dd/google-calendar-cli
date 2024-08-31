@@ -56,10 +56,10 @@ pub fn days_in_english() -> [&'static str; 7] {
 
 /// Converts a date string to a `DateTime<Utc>` based on the provided timezone.
 ///
-/// This function accepts a date string that can be either in the format `HH:MM`, 
-/// `YYYY-MM-DD HH:MM`, or `MM-DD HH:MM`. It will parse the string and convert it to a 
-/// `DateTime<Utc>` considering the given timezone. If the string is in the `HH:MM` format, 
-/// it will use the current date combined with the provided time. If the string is in the 
+/// This function accepts a date string that can be either in the format `HH:MM`,
+/// `YYYY-MM-DD HH:MM`, or `MM-DD HH:MM`. It will parse the string and convert it to a
+/// `DateTime<Utc>` considering the given timezone. If the string is in the `HH:MM` format,
+/// it will use the current date combined with the provided time. If the string is in the
 /// `MM-DD HH:MM` format, it will use the current year combined with the provided month, day, and time.
 ///
 /// # Arguments
@@ -119,5 +119,52 @@ pub fn get_date_from_string(tz: Tz, date: &String) -> DateTime<Utc> {
             .naive_utc()
             .and_utc();
         return event_date_with_timezone;
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_extracting_full_date_from_string() -> Result<(), String> {
+        let tz: Tz = "America/New_York".parse().unwrap(); // UTC is 4 hours ahead of New York
+        let date = String::from("2024-07-27 15:30");
+
+        let actual_date = get_date_from_string(tz, &date);
+        let expected_date = Utc.with_ymd_and_hms(2024, 07, 27, 19, 30, 0).unwrap();
+
+        assert_eq!(actual_date, expected_date);
+        Ok(())
+    }
+
+    #[test]
+    fn test_extracting_full_date_except_year_from_string() -> Result<(), String> {
+        let tz: Tz = "Europe/Zurich".parse().unwrap(); // UTC is 2 hours behind Zurich (CEST)
+        let date = String::from("06-11 0:30");
+        let current_year = Utc::now().year();
+
+        let actual_date = get_date_from_string(tz, &date);
+        let expected_date = Utc
+            .with_ymd_and_hms(current_year, 06, 10, 22, 30, 0)
+            .unwrap();
+
+        assert_eq!(actual_date, expected_date);
+        Ok(())
+    }
+
+    #[test]
+    fn test_extracting_only_hours_and_minutes_from_string() -> Result<(), String> {
+        let tz: Tz = "Asia/Tokyo".parse().unwrap(); // UTC is 9 hours behind Tokyo
+        let date = String::from("23:12");
+        let now = Utc::now();
+
+        let actual_date = get_date_from_string(tz, &date);
+        let expected_date = Utc
+            .with_ymd_and_hms(now.year(), now.month(), now.day(), 14, 12, 0)
+            .unwrap();
+
+        assert_eq!(actual_date, expected_date);
+        Ok(())
     }
 }

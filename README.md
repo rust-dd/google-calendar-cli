@@ -1,10 +1,11 @@
 # Google Calendar CLI - gcal
 
-![example workflow](https://github.com/zeldan/google-calendar-cli/actions/workflows/rust.yml/badge.svg)
+![example workflow](https://github.com/rust-dd/google-calendar-cli/actions/workflows/rust.yml/badge.svg)
 
-This project is a command-line interface (CLI) tool written in Rust for managing your Google Calendar. The primary purpose is to allow users to interact with their Google Calendar directly from the terminal. Adding a new event or listing them should be very easy and quick.
+The Google Calendar CLI (gcal) is a command-line interface (CLI) tool written in Rust, designed to make managing your Google Calendar from the terminal both quick and easy. Whether you're adding new events or listing existing ones, gcal allows you to do it all without leaving your terminal.
 
-*Note: This project is in a very early phase, and many features are still missing. It is currently a playground project, meant for exploration and experimentation.*
+
+*Note: This project is currently in its early stages. While it is functional, many features are still under development. Consider it a playground for exploration and experimentation.*
 
 ![Screenshot](docs/screenshot.png)
 
@@ -14,8 +15,10 @@ Happy scheduling!
 
 ## Installation
 
+To get started with gcal, clone the repository and build the project using Cargo:
 
-```
+
+```sh
 git clone git@github.com:zeldan/google-calendar-cli.git
 cd google-calendar-cli
 cargo build && cargo install --path . --locked
@@ -24,13 +27,19 @@ cargo build && cargo install --path . --locked
 ## Usage
 
 
-### Help
+### Help Command
 
-```
+To view available commands and options, use:
+
+
+```sh
 gcal help
 ```
 
-### Example commands
+### Example Commands
+
+Here are some example commands to help you get started:
+
 
 | Description                          | Command                                          |
 |--------------------------------------|--------------------------------------------------|
@@ -45,20 +54,26 @@ gcal help
 
 ## Authentication
 
-By default, a hardcoded and unverified Google secret is included in the project. This secret has a user cap limit and can be used temporarily. If you want to use your custom authentication (via Google Console), you can find step-by-step instructions [here](docs/custom_auth.md).
+To use gcal, you'll need to authenticate with your Google account. The project includes a default, hardcoded Google API secret, which is suitable for temporary use but has a user cap. For long-term usage, or if you hit the user cap, you can set up custom authentication via Google Console.
 
-How it works in the background ?
+### Setting Up Custom Authentication
 
-1. Start gcalcli. The authentication process will begin automatically.
-2. Follow the instructions to complete the authentication process.
+If you prefer to use your own Google API credentials, follow the step-by-step instructions provided [here](docs/custom_auth.md).
 
-The resulting token will be stored in the `~/.gcal/store.json` file.
+### Authentication Process
+
+1. Run any gcal command; the authentication process will start automatically.
+2. Follow the on-screen instructions to complete the authentication.
+3. The authentication token will be saved to ~/.gcal/store.json for future use.
 
 
 ## Development
 
-For example, you can list the events using the following command:
+For developers looking to contribute or experiment with gcal, you can run the project directly from the source:
 
-```
+
+```sh
 cargo run -- list
 ```
+
+This command will compile and run the gcal tool, allowing you to list events or perform other tasks directly from your development environment.

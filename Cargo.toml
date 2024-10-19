@@ -6,11 +6,11 @@ edition = "2021"
 [dependencies]
 anyhow = "1.0.86"
 chrono = "0.4.38"
-chrono-tz = "0.9.0"
+chrono-tz = "0.10.0"
 clap = { version = "4.5.4", features = ["derive"] }
 comfy-table = "7.1.1"
 dirs = "5.0.1"
-google-calendar3 = "6.0.0+20240523"
+google-calendar3 = "6.0.0"
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 
 [dependencies.uuid]

@@ -3,9 +3,9 @@ use std::{error::Error, path::Path};
 use anyhow::{Context, Result};
 use chrono_tz::Tz;
 use google_calendar3::{
-    hyper::{self, client::HttpConnector},
     hyper_rustls::{self, HttpsConnector},
-    oauth2::{self, ApplicationSecret},
+    hyper_util::{self, client::legacy::connect::HttpConnector},
+    yup_oauth2::{self, ApplicationSecret},
     CalendarHub,
 };
 
@@ -29,12 +29,12 @@ pub async fn auth() -> Result<CalendarHub<HttpsConnector<HttpConnector>>, Box<dy
     let secret_path = std::path::Path::new(&secret_absolute_path);
     let _ = file::ensure_directory_exists(secret_path);
     let auth_builder = match read_google_secret(secret_path).await {
-        Ok(secret) => oauth2::InstalledFlowAuthenticator::builder(
+        Ok(secret) => yup_oauth2::InstalledFlowAuthenticator::builder(
             secret,
-            oauth2::InstalledFlowReturnMethod::HTTPRedirect,
+            yup_oauth2::InstalledFlowReturnMethod::HTTPRedirect,
         ),
         Err(_) => {
-            let secret: oauth2::ApplicationSecret = ApplicationSecret {
+            let secret: yup_oauth2::ApplicationSecret = ApplicationSecret {
                 auth_uri: "https://accounts.google.com/o/oauth2/auth".to_string(),
                 client_secret: "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".to_string(),
                 token_uri: "https://accounts.google.com/o/oauth2/token".to_string(),
@@ -49,9 +49,9 @@ pub async fn auth() -> Result<CalendarHub<HttpsConnector<HttpConnector>>, Box<dy
                 client_email: None,
                 client_x509_cert_url: None,
             };
-            oauth2::InstalledFlowAuthenticator::builder(
+            yup_oauth2::InstalledFlowAuthenticator::builder(
                 secret,
-                oauth2::InstalledFlowReturnMethod::HTTPRedirect,
+                yup_oauth2::InstalledFlowReturnMethod::HTTPRedirect,
             )
         }
     };
@@ -73,16 +73,19 @@ pub async fn auth() -> Result<CalendarHub<HttpsConnector<HttpConnector>>, Box<dy
         Ok(_) => {}
         Err(e) => println!("Authentication error: {:?}", e),
     }
-
-    let https_connector = hyper::Client::builder().build(
+    let client = hyper_util::client::legacy::Client::builder(
+        hyper_util::rt::TokioExecutor::new()
+    )
+    .build(
         hyper_rustls::HttpsConnectorBuilder::new()
-            .with_native_roots()?
+            .with_native_roots()
+            .unwrap()
             .https_or_http()
-            .enable_http2()
-            .build(),
+            .enable_http1()
+            .build()
     );
 
-    let hub = CalendarHub::new(https_connector, auth);
+    let hub = CalendarHub::new(client, auth);
     Ok(hub)
 }
 
@@ -118,7 +121,7 @@ pub async fn get_default_timezone(hub: &CalendarHub<HttpsConnector<HttpConnector
 /// - The file cannot be read.
 /// - The contents of the file cannot be parsed into an ApplicationSecret.
 async fn read_google_secret(path: &Path) -> Result<ApplicationSecret> {
-    let secret = oauth2::read_application_secret(path)
+    let secret = yup_oauth2::read_application_secret(path)
         .await
         .with_context(|| {
             format!(

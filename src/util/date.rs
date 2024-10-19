@@ -1,7 +1,5 @@
+use chrono::{DateTime, Datelike, Duration, Local, NaiveDateTime, NaiveTime, Utc, TimeZone};
 use chrono_tz::Tz;
-use google_calendar3::chrono::{
-    DateTime, Datelike, Duration, Local, NaiveDateTime, NaiveTime, TimeZone, Utc,
-};
 
 /// Returns the start of the current week as a `DateTime<Local>`.
 ///
@@ -124,6 +122,8 @@ pub fn get_date_from_string(tz: Tz, date: &String) -> DateTime<Utc> {
 
 #[cfg(test)]
 mod tests {
+    use chrono::TimeZone;
+
     use super::*;
 
     #[test]

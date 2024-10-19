@@ -3,15 +3,12 @@ mod util;
 use std::collections::HashMap;
 use std::{collections::hash_map::Entry, fmt::Write};
 
+use chrono::{Datelike, Duration, Month, Timelike, TimeZone};
 use chrono_tz::Tz;
 use clap::{Arg, ArgAction, Command};
 use comfy_table::{Attribute, Cell, Color, ContentArrangement, Table};
 use google_calendar3::api::{ConferenceData, ConferenceSolutionKey, CreateConferenceRequest};
-use google_calendar3::chrono::{TimeZone, Timelike};
-use google_calendar3::{
-    api::{Event, EventDateTime},
-    chrono::{Datelike, Duration, Month},
-};
+use google_calendar3::api::{Event, EventDateTime};
 use util::calendar::{self, get_default_timezone};
 use util::date::{days_in_english, get_date_from_string, get_start_of_the_week};
 use uuid::Uuid;

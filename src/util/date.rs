@@ -122,7 +122,7 @@ pub fn get_date_from_string(tz: Tz, date: &String) -> DateTime<Utc> {
 
 #[cfg(test)]
 mod tests {
-    use chrono::TimeZone;
+    use chrono::{TimeZone, Weekday};
 
     use super::*;
 
@@ -165,6 +165,19 @@ mod tests {
             .unwrap();
 
         assert_eq!(actual_date, expected_date);
+        Ok(())
+    }
+
+    #[test]
+    fn test_get_start_of_the_week() -> Result<(), String> {
+        let now = Local::now();
+
+        let start_of_the_week = get_start_of_the_week();
+
+        let days_difference = now.signed_duration_since(start_of_the_week).num_days();        
+        assert!(start_of_the_week <= now);
+        assert!(days_difference >= 0 && days_difference <= 6);
+        assert_eq!(start_of_the_week.weekday(), Weekday::Mon);
         Ok(())
     }
 }
